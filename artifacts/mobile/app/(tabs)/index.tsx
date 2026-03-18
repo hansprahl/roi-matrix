@@ -173,11 +173,16 @@ export default function MatrixScreen() {
       >
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Return on Integrity</Text>
-          <Text style={styles.headerSubtitle}>Benefit-Cost Matrix</Text>
-          <Text style={styles.headerHint}>
-            Evaluate proposed actions against Daniels Principles
+          <Text style={styles.headerTitle}>Return on Integrity: Benefit-Cost Matrix</Text>
+          <Text style={styles.headerCaption}>
+            A principled decision tool inspired by Daniels Principles and exemplars (In-N-Out, AriZona Tea, Costco). High-benefit actions are evaluated for courageous yet pragmatic implementation.
           </Text>
+          <View style={styles.fourDomainBox}>
+            <Text style={styles.fourDomainText}>
+              <Text style={styles.fourDomainBold}>Four-domain guiding questions</Text>
+              {" "}are embedded in the scoring factors to ensure balanced impact across Community Investment, Healthy Workforce, Quality of Products/Services, and Employee Culture & Retention.
+            </Text>
+          </View>
         </View>
 
         {/* Matrix Chart */}
@@ -284,25 +289,39 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   header: {
-    marginBottom: 16,
+    marginBottom: 4,
+    gap: 10,
   },
   headerTitle: {
     fontFamily: "Inter_700Bold",
-    fontSize: 28,
+    fontSize: 24,
     color: "#FFFFFF",
     letterSpacing: -0.5,
+    lineHeight: 30,
   },
-  headerSubtitle: {
-    fontFamily: "Inter_600SemiBold",
-    fontSize: 16,
-    color: Colors.light.tint,
-    marginTop: 2,
-  },
-  headerHint: {
+  headerCaption: {
     fontFamily: "Inter_400Regular",
     fontSize: 13,
-    color: Colors.THEME.textMuted,
-    marginTop: 6,
+    color: Colors.THEME.textSecondary,
+    lineHeight: 20,
+  },
+  fourDomainBox: {
+    backgroundColor: Colors.light.tint + "12",
+    borderLeftWidth: 3,
+    borderLeftColor: Colors.light.tint,
+    borderRadius: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  fourDomainText: {
+    fontFamily: "Inter_400Regular",
+    fontSize: 12,
+    color: Colors.THEME.textSecondary,
+    lineHeight: 18,
+  },
+  fourDomainBold: {
+    fontFamily: "Inter_600SemiBold",
+    color: Colors.light.tint,
   },
   section: {
     marginTop: 20,
