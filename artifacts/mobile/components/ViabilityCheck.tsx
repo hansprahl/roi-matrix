@@ -15,21 +15,12 @@ import Animated, {
 } from "react-native-reanimated";
 
 import Colors from "@/constants/colors";
+import { FILTER_QUESTIONS } from "@/constants/questions";
+import { FilterState } from "@/lib/storage";
+
+export type { FilterState };
 
 const { THEME, QUADRANT } = Colors;
-
-export const FILTER_QUESTIONS = [
-  "Protects long-term success? (safeguards like phased rollout, reserves, or ROI tracking?)",
-  "Includes clear oversight? (monitoring, stakeholder reporting, course-correction steps?)",
-  "Supports the four key areas? (strengthens ≥3 of: Community Investment, Healthy Workforce, Quality of Products/Services, Employee Culture & Retention — without severely harming the fourth?)",
-  "Fits free-market values? (preserves voluntary exchange, informed consent, and competition on genuine value?)",
-  "Can we test it first? (low-risk pilot with clear success metrics and exit plan?)",
-];
-
-export interface FilterState {
-  checks: boolean[];
-  notes: string[];
-}
 
 interface Props {
   state: FilterState;

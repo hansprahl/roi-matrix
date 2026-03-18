@@ -17,6 +17,10 @@ function NativeTabLayout() {
         <Icon sf={{ default: "chart.scatter", selected: "chart.scatter" }} />
         <Label>Matrix</Label>
       </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="history">
+        <Icon sf={{ default: "clock", selected: "clock.fill" }} />
+        <Label>History</Label>
+      </NativeTabs.Trigger>
       <NativeTabs.Trigger name="about">
         <Icon sf={{ default: "info.circle", selected: "info.circle.fill" }} />
         <Label>About</Label>
@@ -73,6 +77,18 @@ function ClassicTabLayout() {
               <SymbolView name="chart.scatter" tintColor={color} size={24} />
             ) : (
               <Feather name="grid" size={22} color={color} />
+            ),
+        }}
+      />
+      <Tabs.Screen
+        name="history"
+        options={{
+          title: "History",
+          tabBarIcon: ({ color }) =>
+            isIOS ? (
+              <SymbolView name="clock" tintColor={color} size={24} />
+            ) : (
+              <Feather name="clock" size={22} color={color} />
             ),
         }}
       />

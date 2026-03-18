@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useRef } from "react";
 import {
   View,
   Text,
@@ -16,25 +16,18 @@ import Colors from "@/constants/colors";
 import MatrixChart from "@/components/MatrixChart";
 import RatingSlider from "@/components/RatingSlider";
 import QuadrantBadge from "@/components/QuadrantBadge";
-import ViabilityCheck, { FilterState } from "@/components/ViabilityCheck";
+import ViabilityCheck from "@/components/ViabilityCheck";
+import { FilterState } from "@/lib/storage";
+import EvaluationSummary from "@/components/EvaluationSummary";
+import { BENEFIT_CRITERIA, COST_CRITERIA } from "@/constants/questions";
+import {
+  saveEvaluation,
+  shareEvaluation,
+  generateId,
+  Evaluation,
+} from "@/lib/storage";
 
 const { THEME, QUADRANT } = Colors;
-
-const BENEFIT_CRITERIA = [
-  { key: "socialImpact", label: "Social Impact / Harm Reduction" },
-  { key: "stakeholderTrust", label: "Stakeholder Trust" },
-  { key: "workforceWellbeing", label: "Workforce Stability & Well-being" },
-  { key: "productQuality", label: "Product / Service Quality" },
-  { key: "longTermViability", label: "Long-term Viability & Fairness" },
-];
-
-const COST_CRITERIA = [
-  { key: "marginImpact", label: "Margin Impact" },
-  { key: "laborTime", label: "Labor Time" },
-  { key: "operationalComplexity", label: "Operational Complexity" },
-  { key: "supplyChainRisk", label: "Supply Chain Risk" },
-  { key: "opportunityCost", label: "Opportunity Cost" },
-];
 
 const EXAMPLE = {
   description:
@@ -53,8 +46,7 @@ function getQuadrant(benefit: number, cost: number) {
       label: "REQUIRED",
       subtitle: "Ethical baseline — must implement",
       color: QUADRANT.required,
-      description:
-        "Ethical baseline – must implement (Integrity, Trust, Respect)",
+      description: "Ethical baseline – must implement (Integrity, Trust, Respect)",
     };
   } else if (isHighBenefit && isHighCost) {
     return {
@@ -69,16 +61,14 @@ function getQuadrant(benefit: number, cost: number) {
       label: "DISCOURAGED",
       subtitle: "Revise, limit, or reject",
       color: QUADRANT.discouraged,
-      description:
-        "Revise, limit, or reject (protect Accountability & Rule of Law)",
+      description: "Revise, limit, or reject (protect Accountability & Rule of Law)",
     };
   } else {
     return {
       label: "PROHIBITED",
       subtitle: "Do not proceed",
       color: QUADRANT.prohibited,
-      description:
-        "Do not proceed (preserve long-term Viability)",
+      description: "Do not proceed (preserve long-term Viability)",
     };
   }
 }
@@ -99,16 +89,23 @@ export default function MatrixScreen() {
     notes: ["", "", "", "", ""],
   };
   const [filterState, setFilterState] = useState<FilterState>(emptyFilter);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const savedResetTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const handleFilterChange = useCallback((index: number, checked: boolean, note: string) => {
-    setFilterState((prev) => {
-      const checks = [...prev.checks];
-      const notes = [...prev.notes];
-      checks[index] = checked;
-      notes[index] = note;
-      return { checks, notes };
-    });
-  }, []);
+  const handleFilterChange = useCallback(
+    (index: number, checked: boolean, note: string) => {
+      setFilterState((prev) => {
+        const checks = [...prev.checks];
+        const notes = [...prev.notes];
+        checks[index] = checked;
+        notes[index] = note;
+        return { checks, notes };
+      });
+      setSaved(false);
+    },
+    []
+  );
 
   const [benefitRatings, setBenefitRatings] = useState<Ratings>({
     socialImpact: 8,
@@ -129,6 +126,46 @@ export default function MatrixScreen() {
   const costScore = parseFloat(avg(costRatings).toFixed(1));
   const quadrant = getQuadrant(benefitScore, costScore);
 
+  const showFilter =
+    quadrant.label === "ENCOURAGED" ||
+    (quadrant.label === "REQUIRED" && costScore > 7.0);
+
+  const filterYesCount = filterState.checks.filter(Boolean).length;
+
+  const buildEvaluation = useCallback((): Evaluation => {
+    return {
+      id: generateId(),
+      createdAt: Date.now(),
+      description,
+      benefitRatings,
+      costRatings,
+      benefitScore,
+      costScore,
+      quadrantLabel: quadrant.label,
+      quadrantColor: quadrant.color,
+      quadrantDescription: quadrant.description,
+      filterUsed: showFilter,
+      filterChecks: filterState.checks,
+      filterNotes: filterState.notes,
+      filterYesCount,
+    };
+  }, [description, benefitRatings, costRatings, benefitScore, costScore, quadrant, showFilter, filterState, filterYesCount]);
+
+  const handleSave = useCallback(async () => {
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    setSaving(true);
+    await saveEvaluation(buildEvaluation());
+    setSaving(false);
+    setSaved(true);
+    if (savedResetTimer.current) clearTimeout(savedResetTimer.current);
+    savedResetTimer.current = setTimeout(() => setSaved(false), 3000);
+  }, [buildEvaluation]);
+
+  const handleShare = useCallback(async () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    await shareEvaluation(buildEvaluation());
+  }, [buildEvaluation]);
+
   const handleLoadExample = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setDescription(EXAMPLE.description);
@@ -144,6 +181,7 @@ export default function MatrixScreen() {
         "",
       ],
     });
+    setSaved(false);
   }, []);
 
   const handleReset = useCallback(() => {
@@ -158,6 +196,7 @@ export default function MatrixScreen() {
       supplyChainRisk: 5, opportunityCost: 5,
     });
     setFilterState({ checks: [false, false, false, false, false], notes: ["", "", "", "", ""] });
+    setSaved(false);
   }, []);
 
   return (
@@ -197,7 +236,7 @@ export default function MatrixScreen() {
           <TextInput
             style={styles.textArea}
             value={description}
-            onChangeText={setDescription}
+            onChangeText={(t) => { setDescription(t); setSaved(false); }}
             placeholder="Describe the action being evaluated…"
             placeholderTextColor={THEME.textMuted}
             multiline
@@ -239,7 +278,7 @@ export default function MatrixScreen() {
               label={c.label}
               value={benefitRatings[c.key]}
               color={QUADRANT.required}
-              onChange={(v) => setBenefitRatings((prev) => ({ ...prev, [c.key]: v }))}
+              onChange={(v) => { setBenefitRatings((prev) => ({ ...prev, [c.key]: v })); setSaved(false); }}
             />
           ))}
         </View>
@@ -262,16 +301,33 @@ export default function MatrixScreen() {
               label={c.label}
               value={costRatings[c.key]}
               color={QUADRANT.prohibited}
-              onChange={(v) => setCostRatings((prev) => ({ ...prev, [c.key]: v }))}
+              onChange={(v) => { setCostRatings((prev) => ({ ...prev, [c.key]: v })); setSaved(false); }}
             />
           ))}
         </View>
 
-        {/* Conditional Adoption Filter — only for ENCOURAGED or high-cost REQUIRED */}
-        {(quadrant.label === "ENCOURAGED" ||
-          (quadrant.label === "REQUIRED" && costScore > 7.0)) && (
+        {/* Conditional Adoption Filter */}
+        {showFilter && (
           <ViabilityCheck state={filterState} onChange={handleFilterChange} />
         )}
+
+        {/* Evaluation Summary + Save/Share */}
+        <EvaluationSummary
+          description={description}
+          benefitRatings={benefitRatings}
+          costRatings={costRatings}
+          benefitScore={benefitScore}
+          costScore={costScore}
+          quadrantLabel={quadrant.label}
+          quadrantColor={quadrant.color}
+          filterUsed={showFilter}
+          filterState={filterState}
+          filterYesCount={filterYesCount}
+          onSave={handleSave}
+          onShare={handleShare}
+          saving={saving}
+          saved={saved}
+        />
       </ScrollView>
     </View>
   );

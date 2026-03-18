@@ -21,6 +21,15 @@ const THEME = {
 export default {
   QUADRANT,
   THEME,
+  primary: "#6C8EFF",
+  background: "#0F1117",
+  card: "#1A1D27",
+  border: "#2A2F45",
+  textPrimary: "#FFFFFF",
+  textSecondary: "#8B91A7",
+  textMuted: "#545A72",
+  benefit: "#4CAF50",
+  cost: "#F44336",
   light: {
     text: "#0F1117",
     background: "#FFFFFF",
