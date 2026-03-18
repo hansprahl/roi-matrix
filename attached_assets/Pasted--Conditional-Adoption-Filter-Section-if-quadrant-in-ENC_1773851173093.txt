@@ -1,0 +1,39 @@
+# --- Conditional Adoption Filter Section ---
+if quadrant in ["ENCOURAGED"] or (quadrant == "REQUIRED" and cost_score > 7.0):
+    st.markdown("---")
+    st.subheader("Conditional Adoption Filter – Next-Step Review")
+    st.caption("Apply only to ENCOURAGED actions (or high-cost REQUIRED). This filter ensures bold ethical choices remain viable and pragmatic — as modeled by Costco's phased benefit expansions and In-N-Out's disciplined integrity practices.")
+
+    st.info("Answer Yes/No below. Provide a brief note explaining your reasoning for each.")
+
+    col1, col2 = st.columns([3, 2])
+
+    with col1:
+        q1 = st.checkbox("1. Protects long-term success? (safeguards like phased rollout, reserves, or ROI tracking?)")
+        q1_note = st.text_input("Brief evidence / note:", key="q1_note", disabled=not q1)
+
+        q2 = st.checkbox("2. Includes clear oversight? (monitoring, stakeholder reporting, course-correction steps?)")
+        q2_note = st.text_input("Brief evidence / note:", key="q2_note", disabled=not q2)
+
+        q3 = st.checkbox("3. Supports the four key areas? (strengthens ≥3 of: Community Investment, Healthy Workforce, Quality of Products/Services, Employee Culture & Retention — without severely harming the fourth?)")
+        q3_note = st.text_input("Brief evidence / note:", key="q3_note", disabled=not q3)
+
+        q4 = st.checkbox("4. Fits free-market values? (preserves voluntary exchange, informed consent, and competition on genuine value?)")
+        q4_note = st.text_input("Brief evidence / note:", key="q4_note", disabled=not q4)
+
+        q5 = st.checkbox("5. Can we test it first? (low-risk pilot with clear success metrics and exit plan?)")
+        q5_note = st.text_input("Brief evidence / note:", key="q5_note", disabled=not q5)
+
+    with col2:
+        yes_count = sum([q1, q2, q3, q4, q5])
+        st.metric("Yes Count", f"{yes_count}/5", delta=None)
+
+        if yes_count >= 4:
+            st.success("**Adopt Immediately** (or Full rollout if REQUIRED)\nEthical/strategic imperative met.")
+        elif yes_count == 3:
+            st.warning("**Conditional Adoption**\nProceed only after addressing the missing condition(s).")
+        else:
+            st.error("**Defer or Reject**\nViability risk too high — revise or do not proceed.")
+
+    # Optional: Show which principles are most reinforced
+    st.caption("**Principle tie-in**: High yes-count strengthens Viability, Accountability, Transparency, Fairness, and Respect while preserving long-term free-market sustainability.")

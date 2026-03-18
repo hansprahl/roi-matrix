@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import { View, Text, StyleSheet } from "react-native";
+import { Feather } from "@expo/vector-icons";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -24,6 +25,10 @@ interface Props {
   costScore: number;
 }
 
+function needsConditionalReview(label: string, costScore: number): boolean {
+  return label === "ENCOURAGED" || (label === "REQUIRED" && costScore > 7.0);
+}
+
 export default function QuadrantBadge({ quadrant, benefitScore, costScore }: Props) {
   const scale = useSharedValue(0.96);
   const opacity = useSharedValue(0.5);
@@ -37,6 +42,8 @@ export default function QuadrantBadge({ quadrant, benefitScore, costScore }: Pro
     transform: [{ scale: scale.value }],
     opacity: opacity.value,
   }));
+
+  const showReview = needsConditionalReview(quadrant.label, costScore);
 
   return (
     <Animated.View
@@ -55,7 +62,26 @@ export default function QuadrantBadge({ quadrant, benefitScore, costScore }: Pro
         </View>
         <Text style={[styles.subtitle, { color: quadrant.color }]}>{quadrant.subtitle}</Text>
       </View>
+
       <Text style={styles.description}>{quadrant.description}</Text>
+
+      {/* Teaser line */}
+      {showReview ? (
+        <View style={[styles.teaser, { borderColor: quadrant.color + "40", backgroundColor: quadrant.color + "10" }]}>
+          <Feather name="arrow-down" size={13} color={quadrant.color} />
+          <Text style={[styles.teaserText, { color: quadrant.color }]}>
+            Review the <Text style={styles.teaserBold}>Conditional Adoption Filter</Text> below to determine precise next steps.
+          </Text>
+        </View>
+      ) : (
+        <View style={[styles.teaser, { borderColor: Colors.QUADRANT.required + "40", backgroundColor: Colors.QUADRANT.required + "10" }]}>
+          <Feather name="check-circle" size={13} color={Colors.QUADRANT.required} />
+          <Text style={[styles.teaserText, { color: Colors.QUADRANT.required }]}>
+            No conditional review required for this quadrant.
+          </Text>
+        </View>
+      )}
+
       <View style={styles.scores}>
         <View style={styles.scoreItem}>
           <Text style={[styles.scoreVal, { color: quadrant.color }]}>{benefitScore}</Text>
@@ -106,6 +132,24 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: THEME.textSecondary,
     lineHeight: 20,
+  },
+  teaser: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+  },
+  teaserText: {
+    fontFamily: "Inter_400Regular",
+    fontSize: 12,
+    lineHeight: 18,
+    flex: 1,
+  },
+  teaserBold: {
+    fontFamily: "Inter_600SemiBold",
   },
   scores: {
     flexDirection: "row",

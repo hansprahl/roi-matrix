@@ -7,24 +7,16 @@ import {
   Pressable,
   TextInput,
   Platform,
-  useColorScheme,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
 import { Feather } from "@expo/vector-icons";
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-  withTiming,
-  Easing,
-} from "react-native-reanimated";
 
 import Colors from "@/constants/colors";
 import MatrixChart from "@/components/MatrixChart";
 import RatingSlider from "@/components/RatingSlider";
 import QuadrantBadge from "@/components/QuadrantBadge";
-import ViabilityCheck from "@/components/ViabilityCheck";
+import ViabilityCheck, { FilterState } from "@/components/ViabilityCheck";
 
 const { THEME, QUADRANT } = Colors;
 
@@ -59,10 +51,10 @@ function getQuadrant(benefit: number, cost: number) {
   if (isHighBenefit && !isHighCost) {
     return {
       label: "REQUIRED",
-      subtitle: "Ethical baseline — must do",
+      subtitle: "Ethical baseline — must implement",
       color: QUADRANT.required,
       description:
-        "This action delivers high ethical and social benefit at low cost. Per Daniels Principles (Integrity, Accountability, Respect), these are the actions organizations must take. They align with the Rule of Law and demonstrate Fairness.",
+        "Ethical baseline – must implement (Integrity, Trust, Respect)",
     };
   } else if (isHighBenefit && isHighCost) {
     return {
@@ -70,15 +62,15 @@ function getQuadrant(benefit: number, cost: number) {
       subtitle: "Strategic long-term investment",
       color: QUADRANT.encouraged,
       description:
-        "High benefit at higher cost signals a strategic investment in Trust and long-term Viability. These actions may not be immediately profitable but drive loyalty, brand equity, and stakeholder confidence — cornerstones of free-market success.",
+        "Strategic long-term investment (Viability + Fairness) – proceed with Conditional Adoption review",
     };
   } else if (!isHighBenefit && !isHighCost) {
     return {
       label: "DISCOURAGED",
-      subtitle: "Revise or limit",
+      subtitle: "Revise, limit, or reject",
       color: QUADRANT.discouraged,
       description:
-        "Low benefit and low cost actions produce minimal ethical return. While not prohibited, Transparency and Accountability require honest evaluation. Revise scope or seek higher-impact alternatives to better serve stakeholders.",
+        "Revise, limit, or reject (protect Accountability & Rule of Law)",
     };
   } else {
     return {
@@ -86,7 +78,7 @@ function getQuadrant(benefit: number, cost: number) {
       subtitle: "Do not proceed",
       color: QUADRANT.prohibited,
       description:
-        "High cost with low ethical benefit violates the principles of Integrity and Fairness. These actions risk stakeholder harm, reputational damage, and long-term Viability. Do not proceed without significant redesign.",
+        "Do not proceed (preserve long-term Viability)",
     };
   }
 }
@@ -102,13 +94,19 @@ export default function MatrixScreen() {
   const bottomPad = Platform.OS === "web" ? 34 : insets.bottom;
 
   const [description, setDescription] = useState("");
-  const [viabilityChecks, setViabilityChecks] = useState<boolean[]>([false, false, false, false, false]);
+  const emptyFilter: FilterState = {
+    checks: [false, false, false, false, false],
+    notes: ["", "", "", "", ""],
+  };
+  const [filterState, setFilterState] = useState<FilterState>(emptyFilter);
 
-  const handleViabilityChange = useCallback((index: number, value: boolean) => {
-    setViabilityChecks((prev) => {
-      const next = [...prev];
-      next[index] = value;
-      return next;
+  const handleFilterChange = useCallback((index: number, checked: boolean, note: string) => {
+    setFilterState((prev) => {
+      const checks = [...prev.checks];
+      const notes = [...prev.notes];
+      checks[index] = checked;
+      notes[index] = note;
+      return { checks, notes };
     });
   }, []);
 
@@ -136,7 +134,16 @@ export default function MatrixScreen() {
     setDescription(EXAMPLE.description);
     setBenefitRatings({ ...EXAMPLE.benefit });
     setCostRatings({ ...EXAMPLE.cost });
-    setViabilityChecks([true, true, true, true, false]);
+    setFilterState({
+      checks: [true, true, true, true, false],
+      notes: [
+        "Phased rollout across 3 regions in Q1",
+        "Quarterly stakeholder reporting committed",
+        "Improves workforce + customer retention scores",
+        "Voluntary employment; market-driven pricing retained",
+        "",
+      ],
+    });
   }, []);
 
   const handleReset = useCallback(() => {
@@ -150,7 +157,7 @@ export default function MatrixScreen() {
       marginImpact: 5, laborTime: 5, operationalComplexity: 5,
       supplyChainRisk: 5, opportunityCost: 5,
     });
-    setViabilityChecks([false, false, false, false, false]);
+    setFilterState({ checks: [false, false, false, false, false], notes: ["", "", "", "", ""] });
   }, []);
 
   return (
@@ -255,8 +262,11 @@ export default function MatrixScreen() {
           ))}
         </View>
 
-        {/* Viability Checks */}
-        <ViabilityCheck checks={viabilityChecks} onChange={handleViabilityChange} />
+        {/* Conditional Adoption Filter — only for ENCOURAGED or high-cost REQUIRED */}
+        {(quadrant.label === "ENCOURAGED" ||
+          (quadrant.label === "REQUIRED" && costScore > 7.0)) && (
+          <ViabilityCheck state={filterState} onChange={handleFilterChange} />
+        )}
       </ScrollView>
     </View>
   );
