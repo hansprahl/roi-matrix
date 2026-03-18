@@ -24,6 +24,7 @@ import Colors from "@/constants/colors";
 import MatrixChart from "@/components/MatrixChart";
 import RatingSlider from "@/components/RatingSlider";
 import QuadrantBadge from "@/components/QuadrantBadge";
+import ViabilityCheck from "@/components/ViabilityCheck";
 
 const { THEME, QUADRANT } = Colors;
 
@@ -101,6 +102,16 @@ export default function MatrixScreen() {
   const bottomPad = Platform.OS === "web" ? 34 : insets.bottom;
 
   const [description, setDescription] = useState("");
+  const [viabilityChecks, setViabilityChecks] = useState<boolean[]>([false, false, false, false, false]);
+
+  const handleViabilityChange = useCallback((index: number, value: boolean) => {
+    setViabilityChecks((prev) => {
+      const next = [...prev];
+      next[index] = value;
+      return next;
+    });
+  }, []);
+
   const [benefitRatings, setBenefitRatings] = useState<Ratings>({
     socialImpact: 8,
     stakeholderTrust: 8,
@@ -125,6 +136,7 @@ export default function MatrixScreen() {
     setDescription(EXAMPLE.description);
     setBenefitRatings({ ...EXAMPLE.benefit });
     setCostRatings({ ...EXAMPLE.cost });
+    setViabilityChecks([true, true, true, true, false]);
   }, []);
 
   const handleReset = useCallback(() => {
@@ -138,6 +150,7 @@ export default function MatrixScreen() {
       marginImpact: 5, laborTime: 5, operationalComplexity: 5,
       supplyChainRisk: 5, opportunityCost: 5,
     });
+    setViabilityChecks([false, false, false, false, false]);
   }, []);
 
   return (
@@ -241,6 +254,9 @@ export default function MatrixScreen() {
             />
           ))}
         </View>
+
+        {/* Viability Checks */}
+        <ViabilityCheck checks={viabilityChecks} onChange={handleViabilityChange} />
       </ScrollView>
     </View>
   );
