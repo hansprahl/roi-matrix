@@ -1,0 +1,29 @@
+Build a complete, interactive Streamlit web app in Python that implements the "Return on Integrity Benefit-Cost Matrix" as a decision-making tool for business ethics. The app should help users evaluate proposed actions using a 10x10 grid where:
+
+- Y-axis: Benefit Score (0 to 10, higher = better ethical/social impact)
+- X-axis: Cost Score (0 to 10, higher = more expensive/risky)
+
+The grid is divided into four colored quadrants with these labels and colors (use hex codes if possible):
+- Top-Left (green, #4CAF50): REQUIRED – Ethical baseline (must do: high benefit, low cost)
+- Top-Right (blue, #2196F3): ENCOURAGED – Strategic long-term investment (high benefit, high cost)
+- Bottom-Left (orange, #FF9800): DISCOURAGED – Revise or limit (low benefit, low cost)
+- Bottom-Right (red, #F44336): PROHIBITED – Do not proceed (low benefit, high cost)
+
+Threshold for "high" vs "low" is 5.5 on both axes (dashed lines at x=5.5 and y=5.5).
+
+App features (build step-by-step):
+1. Title and description at the top: "Return on Integrity: Benefit-Cost Matrix" with subtitle explaining it is inspired by Daniels Principles (Integrity, Trust, Accountability, Transparency, Fairness, Respect, Rule of Law, Viability) and exemplars (In-N-Out Burger, AriZona Tea, Costco Wholesale).
+
+2. Sidebar inputs: Let users enter 5 benefit ratings (1-10 sliders or number inputs) for: social impact/harm reduction, stakeholder trust, workforce stability/well-being, product/service quality, long-term viability/fairness/accountability. Calculate average Benefit Score.
+
+3. Sidebar inputs: 5 cost ratings (1-10) for: margin impact, labor time, operational complexity, supply chain risk, opportunity cost. Calculate average Cost Score.
+
+4. Main area: Display a Plotly scatter plot (interactive) showing the 10x10 grid with colored quadrants, dashed threshold lines, and a large marker (e.g., green circle) plotted at (Cost Score, Benefit Score). Label the quadrant the point lands in with big text below the plot (e.g., "REQUIRED – Ethical baseline").
+
+5. Below the plot: Show the calculated Benefit Score, Cost Score, and quadrant decision. Add brief explanatory text for each quadrant tying back to Daniels Principles and free-market compatibility (e.g., "ENCOURAGED actions may drive long-term viability through trust and loyalty").
+
+6. Optional nice-to-have: Add a text area for users to describe the proposed action, and display it above the results. Include one example pre-filled (e.g., Costco wage increase: Benefit ~8.4, Cost ~7.1 → ENCOURAGED with pilot condition).
+
+Use libraries: streamlit, plotly.express, plotly.graph_objects. Make it clean, professional, mobile-friendly. Add comments in code explaining each section. Use st.columns or layout features for good spacing.
+
+Start by creating the basic Streamlit structure, then add inputs, calculations, and finally the interactive Plotly chart. Make sure the app runs immediately on Replit with no extra setup beyond pip installs if needed.

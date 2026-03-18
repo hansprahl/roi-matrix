@@ -1,0 +1,100 @@
+import { BlurView } from "expo-blur";
+import { isLiquidGlassAvailable } from "expo-glass-effect";
+import { Tabs } from "expo-router";
+import { Icon, Label, NativeTabs } from "expo-router/unstable-native-tabs";
+import { SymbolView } from "expo-symbols";
+import { Feather } from "@expo/vector-icons";
+import React from "react";
+import { Platform, StyleSheet, View, useColorScheme } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+import Colors from "@/constants/colors";
+
+function NativeTabLayout() {
+  return (
+    <NativeTabs>
+      <NativeTabs.Trigger name="index">
+        <Icon sf={{ default: "chart.scatter", selected: "chart.scatter" }} />
+        <Label>Matrix</Label>
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="about">
+        <Icon sf={{ default: "info.circle", selected: "info.circle.fill" }} />
+        <Label>About</Label>
+      </NativeTabs.Trigger>
+    </NativeTabs>
+  );
+}
+
+function ClassicTabLayout() {
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
+  const isIOS = Platform.OS === "ios";
+  const isWeb = Platform.OS === "web";
+  const safeAreaInsets = useSafeAreaInsets();
+
+  return (
+    <Tabs
+      screenOptions={{
+        tabBarActiveTintColor: Colors.light.tint,
+        tabBarInactiveTintColor: Colors.light.tabIconDefault,
+        headerShown: false,
+        tabBarStyle: {
+          position: "absolute",
+          backgroundColor: isIOS ? "transparent" : Colors.THEME.bg,
+          borderTopWidth: isWeb ? 1 : 0,
+          borderTopColor: Colors.THEME.border,
+          elevation: 0,
+          paddingBottom: safeAreaInsets.bottom,
+          ...(isWeb ? { height: 84 } : {}),
+        },
+        tabBarBackground: () =>
+          isIOS ? (
+            <BlurView
+              intensity={80}
+              tint="dark"
+              style={StyleSheet.absoluteFill}
+            />
+          ) : isWeb ? (
+            <View
+              style={[
+                StyleSheet.absoluteFill,
+                { backgroundColor: Colors.THEME.bg },
+              ]}
+            />
+          ) : null,
+      }}
+    >
+      <Tabs.Screen
+        name="index"
+        options={{
+          title: "Matrix",
+          tabBarIcon: ({ color }) =>
+            isIOS ? (
+              <SymbolView name="chart.scatter" tintColor={color} size={24} />
+            ) : (
+              <Feather name="grid" size={22} color={color} />
+            ),
+        }}
+      />
+      <Tabs.Screen
+        name="about"
+        options={{
+          title: "About",
+          tabBarIcon: ({ color }) =>
+            isIOS ? (
+              <SymbolView name="info.circle" tintColor={color} size={24} />
+            ) : (
+              <Feather name="info" size={22} color={color} />
+            ),
+        }}
+      />
+    </Tabs>
+  );
+}
+
+export default function TabLayout() {
+  if (isLiquidGlassAvailable()) {
+    return <NativeTabLayout />;
+  }
+  return <ClassicTabLayout />;
+}
