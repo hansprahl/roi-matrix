@@ -104,3 +104,104 @@
   .border-discouraged { border-color: var(--discouraged); }
   .border-prohibited { border-color: var(--prohibited); }
 }
+
+@media print {
+  @page {
+    margin: 1.5cm 2cm;
+    size: A4;
+  }
+
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  body {
+    background: #fff !important;
+    color: #1a1a1a !important;
+    font-family: 'Inter', sans-serif !important;
+    font-size: 10pt !important;
+  }
+
+  /* Hide non-print elements */
+  .print\:hidden,
+  nav,
+  button,
+  header {
+    display: none !important;
+  }
+
+  /* Right panel takes full width */
+  .flex-1.lg\:h-screen {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+    padding: 0 !important;
+    background: #fff !important;
+  }
+
+  .max-w-3xl {
+    max-width: 100% !important;
+  }
+
+  /* Cards */
+  section,
+  .bg-card,
+  .bg-card\/60 {
+    background: #fff !important;
+    border: 1px solid #ddd !important;
+    border-radius: 6px !important;
+    break-inside: avoid;
+    padding: 12pt !important;
+    margin-bottom: 12pt !important;
+    box-shadow: none !important;
+  }
+
+  /* Text colors */
+  .text-foreground,
+  .text-foreground\/80,
+  .text-foreground\/90 {
+    color: #1a1a1a !important;
+  }
+
+  .text-muted-foreground {
+    color: #555 !important;
+  }
+
+  .text-required { color: #388e3c !important; }
+  .text-encouraged { color: #1565c0 !important; }
+  .text-discouraged { color: #e65100 !important; }
+  .text-prohibited { color: #c62828 !important; }
+
+  .bg-required { background-color: #388e3c !important; }
+  .bg-prohibited { background-color: #c62828 !important; }
+
+  /* Progress bars: show as text ratio instead */
+  .bg-required\/10 { background-color: #e8f5e9 !important; }
+  .bg-prohibited\/10 { background-color: #ffebee !important; }
+  .bg-input { background-color: #f5f5f5 !important; }
+  .bg-input\/30,
+  .bg-input\/40,
+  .bg-input\/50 { background-color: #f9f9f9 !important; }
+
+  /* Headings */
+  h1, h2, h3, h4 {
+    color: #1a1a1a !important;
+  }
+
+  /* Hide AI section and matrix chart in print — summary is what matters */
+  .ai-report-section {
+    display: none !important;
+  }
+
+  /* Ensure rating bars render */
+  .h-1\.5 {
+    height: 4px !important;
+  }
+
+  /* Page breaks */
+  .space-y-8 > * {
+    break-inside: avoid;
+  }
+}

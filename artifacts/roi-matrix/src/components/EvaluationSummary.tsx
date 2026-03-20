@@ -1,14 +1,21 @@
 import React from "react";
-import { Check, Share2, Save, Loader2 } from "lucide-react";
+import { Check, Share2, Save, Loader2, Printer } from "lucide-react";
 import { BENEFIT_CRITERIA, COST_CRITERIA, FILTER_QUESTIONS } from "../constants/questions";
 import { FilterState } from "../lib/storage";
 import { cn } from "@/lib/utils";
 
 interface EvaluationSummaryProps {
   backgroundInfo: string;
+  stakeholders: string;
   description: string;
   benefitRatings: Record<string, number>;
   costRatings: Record<string, number>;
+  benefitNotes: Record<string, string>;
+  costNotes: Record<string, string>;
+  benefitWeights: Record<string, number>;
+  costWeights: Record<string, number>;
+  customBenefitLabels: Record<string, string>;
+  customCostLabels: Record<string, string>;
   benefitScore: number;
   costScore: number;
   quadrantLabel: string;
@@ -21,11 +28,25 @@ interface EvaluationSummaryProps {
   saved: boolean;
 }
 
+const WEIGHT_LABEL: Record<number, string> = { 1: "L", 2: "M", 3: "H" };
+const WEIGHT_COLOR: Record<number, string> = {
+  1: "text-muted-foreground",
+  2: "text-foreground/60",
+  3: "text-primary",
+};
+
 export function EvaluationSummary({
   backgroundInfo,
+  stakeholders,
   description,
   benefitRatings,
   costRatings,
+  benefitNotes,
+  costNotes,
+  benefitWeights,
+  costWeights,
+  customBenefitLabels,
+  customCostLabels,
   benefitScore,
   costScore,
   quadrantLabel,
@@ -55,8 +76,15 @@ export function EvaluationSummary({
 
         {backgroundInfo?.trim() && (
           <div className="mb-4 p-3 rounded-xl bg-input/40 border border-border/60">
-            <p className="text-[11px] uppercase tracking-widest font-bold text-muted-foreground mb-1.5">Background</p>
+            <p className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground mb-1.5">Background</p>
             <p className="text-sm text-foreground/80 leading-relaxed whitespace-pre-wrap">{backgroundInfo.trim()}</p>
+          </div>
+        )}
+
+        {stakeholders?.trim() && (
+          <div className="mb-3 flex items-start gap-2 text-sm">
+            <span className="text-muted-foreground shrink-0 font-semibold">Stakeholders:</span>
+            <span className="text-foreground/80">{stakeholders.trim()}</span>
           </div>
         )}
 
@@ -71,13 +99,24 @@ export function EvaluationSummary({
             <span className="text-xs uppercase tracking-wider font-bold text-required">Benefits</span>
             <span className="font-mono font-bold text-required bg-required/10 px-2 py-0.5 rounded border border-required/20">{benefitScore.toFixed(1)}</span>
           </div>
-          {BENEFIT_CRITERIA.map(c => (
-            <div key={c.key} className="flex items-center gap-3">
-              <span className="text-xs text-muted-foreground w-32 truncate" title={c.label}>{c.label}</span>
-              {renderBar(benefitRatings[c.key], true)}
-              <span className="text-xs font-mono font-medium text-foreground w-4 text-right">{benefitRatings[c.key]}</span>
-            </div>
-          ))}
+          {BENEFIT_CRITERIA.map(c => {
+            const label = customBenefitLabels?.[c.key] || c.label;
+            const note = benefitNotes?.[c.key];
+            const w = benefitWeights?.[c.key] ?? 2;
+            return (
+              <div key={c.key}>
+                <div className="flex items-center gap-3">
+                  <span className="text-xs text-muted-foreground truncate" style={{ width: "7.5rem" }} title={label}>{label}</span>
+                  <span className={cn("text-[9px] font-bold shrink-0", WEIGHT_COLOR[w])}>{WEIGHT_LABEL[w]}</span>
+                  {renderBar(benefitRatings[c.key], true)}
+                  <span className="text-xs font-mono font-medium text-foreground w-4 text-right shrink-0">{benefitRatings[c.key]}</span>
+                </div>
+                {note?.trim() && (
+                  <p className="text-[11px] text-muted-foreground italic mt-1 pl-[8.5rem] leading-snug">{note.trim()}</p>
+                )}
+              </div>
+            );
+          })}
         </div>
 
         <div className="space-y-3">
@@ -85,13 +124,24 @@ export function EvaluationSummary({
             <span className="text-xs uppercase tracking-wider font-bold text-prohibited">Costs</span>
             <span className="font-mono font-bold text-prohibited bg-prohibited/10 px-2 py-0.5 rounded border border-prohibited/20">{costScore.toFixed(1)}</span>
           </div>
-          {COST_CRITERIA.map(c => (
-            <div key={c.key} className="flex items-center gap-3">
-              <span className="text-xs text-muted-foreground w-32 truncate" title={c.label}>{c.label}</span>
-              {renderBar(costRatings[c.key], false)}
-              <span className="text-xs font-mono font-medium text-foreground w-4 text-right">{costRatings[c.key]}</span>
-            </div>
-          ))}
+          {COST_CRITERIA.map(c => {
+            const label = customCostLabels?.[c.key] || c.label;
+            const note = costNotes?.[c.key];
+            const w = costWeights?.[c.key] ?? 2;
+            return (
+              <div key={c.key}>
+                <div className="flex items-center gap-3">
+                  <span className="text-xs text-muted-foreground truncate" style={{ width: "7.5rem" }} title={label}>{label}</span>
+                  <span className={cn("text-[9px] font-bold shrink-0", WEIGHT_COLOR[w])}>{WEIGHT_LABEL[w]}</span>
+                  {renderBar(costRatings[c.key], false)}
+                  <span className="text-xs font-mono font-medium text-foreground w-4 text-right shrink-0">{costRatings[c.key]}</span>
+                </div>
+                {note?.trim() && (
+                  <p className="text-[11px] text-muted-foreground italic mt-1 pl-[8.5rem] leading-snug">{note.trim()}</p>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
 
@@ -113,7 +163,7 @@ export function EvaluationSummary({
                     {yes ? "YES" : "NO "}
                   </span>
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs text-foreground/80 leading-relaxed truncate">{q}</p>
+                    <p className="text-xs text-foreground/80 leading-relaxed">{q}</p>
                     {filterState.notes[i] && (
                       <p className="text-xs text-muted-foreground italic mt-1 bg-input/30 p-2 rounded border border-border/50">
                         {filterState.notes[i]}
@@ -145,10 +195,19 @@ export function EvaluationSummary({
 
         <button
           onClick={onShare}
-          className="flex-1 py-3 px-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 bg-input/50 text-primary border border-primary/30 hover:bg-primary/10 transition-all duration-300 focus:ring-2 focus:ring-primary/50 focus:outline-none"
+          className="flex-1 py-3 px-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 bg-input/50 text-primary border border-primary/30 hover:bg-primary/10 transition-all duration-300"
         >
           <Share2 className="w-4 h-4" />
           Share Report
+        </button>
+
+        <button
+          onClick={() => window.print()}
+          className="sm:w-auto px-4 py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 bg-input text-muted-foreground border border-border hover:text-foreground hover:border-border/80 transition-all duration-300"
+          title="Print report"
+        >
+          <Printer className="w-4 h-4" />
+          <span className="sm:hidden">Print</span>
         </button>
       </div>
     </div>

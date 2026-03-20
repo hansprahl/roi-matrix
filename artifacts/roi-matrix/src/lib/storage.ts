@@ -1,6 +1,7 @@
 import { BENEFIT_CRITERIA, COST_CRITERIA, FILTER_QUESTIONS } from "../constants/questions";
 
 const STORAGE_KEY = "roi_evaluations";
+const COMPARISON_KEY = "roi_comparison";
 
 export interface FilterState {
   checks: boolean[];
@@ -11,9 +12,16 @@ export interface Evaluation {
   id: string;
   createdAt: number;
   backgroundInfo: string;
+  stakeholders: string;
   description: string;
   benefitRatings: Record<string, number>;
   costRatings: Record<string, number>;
+  benefitNotes: Record<string, string>;
+  costNotes: Record<string, string>;
+  benefitWeights: Record<string, number>;
+  costWeights: Record<string, number>;
+  customBenefitLabels: Record<string, string>;
+  customCostLabels: Record<string, string>;
   benefitScore: number;
   costScore: number;
   quadrantLabel: string;
@@ -23,6 +31,16 @@ export interface Evaluation {
   filterChecks: boolean[];
   filterNotes: string[];
   filterYesCount: number;
+}
+
+export function calcWeightedScore(
+  ratings: Record<string, number>,
+  weights: Record<string, number>,
+  keys: string[]
+): number {
+  const totalWeight = keys.reduce((s, k) => s + (weights[k] ?? 2), 0);
+  const weightedSum = keys.reduce((s, k) => s + (ratings[k] * (weights[k] ?? 2)), 0);
+  return totalWeight > 0 ? weightedSum / totalWeight : 0;
 }
 
 export function loadEvaluations(): Evaluation[] {
@@ -52,35 +70,64 @@ export function generateId(): string {
   return Date.now().toString() + Math.random().toString(36).substring(2, 9);
 }
 
+export function getComparison(): Evaluation | null {
+  try {
+    const raw = localStorage.getItem(COMPARISON_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch { return null; }
+}
+
+export function setComparison(evaluation: Evaluation | null): void {
+  if (evaluation) {
+    localStorage.setItem(COMPARISON_KEY, JSON.stringify(evaluation));
+  } else {
+    localStorage.removeItem(COMPARISON_KEY);
+  }
+}
+
+const WEIGHT_LABEL: Record<number, string> = { 1: "Low", 2: "Medium", 3: "High" };
+
 export function buildShareText(e: Evaluation): string {
   const date = new Date(e.createdAt).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
+    year: "numeric", month: "long", day: "numeric",
   });
 
   let text = `RETURN ON INTEGRITY: BENEFIT-COST MATRIX\n`;
   text += `${"─".repeat(44)}\n`;
   text += `Date: ${date}\n`;
+
+  if (e.stakeholders?.trim()) {
+    text += `Stakeholders: ${e.stakeholders.trim()}\n`;
+  }
+
   if (e.backgroundInfo?.trim()) {
     text += `\nBACKGROUND INFORMATION\n${e.backgroundInfo.trim()}\n`;
   }
+
   text += `\nAction: ${e.description || "(untitled)"}\n\n`;
 
   text += `MATRIX RESULT: ${e.quadrantLabel}\n`;
   text += `${e.quadrantDescription}\n\n`;
 
-  text += `Benefit Score: ${e.benefitScore}/10\n`;
-  text += `Cost Score:    ${e.costScore}/10\n\n`;
+  text += `Benefit Score: ${e.benefitScore}/10 (weighted)\n`;
+  text += `Cost Score:    ${e.costScore}/10 (weighted)\n\n`;
 
   text += `BENEFIT RATINGS\n`;
   BENEFIT_CRITERIA.forEach((c) => {
-    text += `  • ${c.label}: ${e.benefitRatings[c.key]}/10\n`;
+    const label = e.customBenefitLabels?.[c.key] || c.label;
+    const weight = e.benefitWeights?.[c.key] ?? 2;
+    const note = e.benefitNotes?.[c.key];
+    text += `  • ${label} [${WEIGHT_LABEL[weight]}]: ${e.benefitRatings[c.key]}/10\n`;
+    if (note?.trim()) text += `    Note: ${note.trim()}\n`;
   });
 
   text += `\nCOST RATINGS\n`;
   COST_CRITERIA.forEach((c) => {
-    text += `  • ${c.label}: ${e.costRatings[c.key]}/10\n`;
+    const label = e.customCostLabels?.[c.key] || c.label;
+    const weight = e.costWeights?.[c.key] ?? 2;
+    const note = e.costNotes?.[c.key];
+    text += `  • ${label} [${WEIGHT_LABEL[weight]}]: ${e.costRatings[c.key]}/10\n`;
+    if (note?.trim()) text += `    Note: ${note.trim()}\n`;
   });
 
   if (e.filterUsed) {

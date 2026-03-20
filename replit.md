@@ -94,3 +94,43 @@ Generated React Query hooks and fetch client from the OpenAPI spec (e.g. `useHea
 ### `scripts` (`@workspace/scripts`)
 
 Utility scripts package. Each script is a `.ts` file in `src/` with a corresponding npm script in `package.json`. Run scripts via `pnpm --filter @workspace/scripts run <script>`. Scripts can import any workspace package (e.g., `@workspace/db`) by adding it as a dependency in `scripts/package.json`.
+
+---
+
+## Return on Integrity: Benefit-Cost Matrix (`artifacts/roi-matrix`)
+
+React + Vite + Tailwind web app. Dark theme. No backend DB — all state in localStorage.
+
+### Features
+- **4-quadrant matrix chart** (REQUIRED / ENCOURAGED / DISCOURAGED / PROHIBITED) with animated SVG dot
+- **Background Information** textarea + **Stakeholders Consulted** text input
+- **Proposed Action** textarea with Example (Costco wage case study) and Reset buttons
+- **Benefit / Cost Ratings** — 5 criteria each, with:
+  - L/M/H **priority weight** pills (1=Low, 2=Medium default, 3=High) — affects weighted average score
+  - **Tooltip** (info icon) with rating guidance per criterion
+  - **Expandable rationale notes** (note icon toggles textarea below pips)
+  - **Editable labels** — "Labels" button puts all criteria labels into edit mode
+- **Weighted average scoring** (`calcWeightedScore`) — not simple mean
+- **Conditional Adoption Filter** — 5 yes/no questions with notes; shown for ENCOURAGED quadrant or high-cost REQUIRED
+- **AI Narrative Report** — POST `/proxy-api/api/generate-report` → api-server → OpenAI streaming SSE; shows typewriter effect; Copy button
+- **Evaluation Summary** — bar chart of all ratings, Save / Share / Print buttons
+- **Print/PDF export** — `window.print()` with `@media print` CSS for clean A4 output
+- **Save to History** — localStorage `roi_evaluations`
+- **History page** — expandable cards showing full evaluation details, weight labels, notes; Load / Compare / Share / Delete actions
+- **Load from History** — writes to localStorage `roi_pending_load`, navigates to `/`, MatrixPage reads on mount
+- **Comparison mode** — "Compare" button stores eval in `roi_comparison`; MatrixChart shows second dashed dot; left panel shows comparison badge with clear button
+
+### Key files
+- `src/pages/MatrixPage.tsx` — main form with all state
+- `src/pages/HistoryPage.tsx` — saved evaluations list
+- `src/components/MatrixChart.tsx` — SVG chart + comparison dot
+- `src/components/RatingSlider.tsx` — weights + notes + tooltips + editable labels
+- `src/components/AiReport.tsx` — AI report generation with SSE streaming
+- `src/components/EvaluationSummary.tsx` — summary bars + print button
+- `src/lib/storage.ts` — Evaluation type, calcWeightedScore, buildShareText, comparison helpers
+- `src/constants/questions.ts` — criteria with tooltips, filter questions
+
+### API Server
+- `POST /api/generate-report` — streams AI narrative via SSE using OpenAI (gpt-5.2)
+- Proxy: Vite dev server proxies `/proxy-api` → `localhost:8080` (api-server)
+- Env vars: `AI_INTEGRATIONS_OPENAI_BASE_URL`, `AI_INTEGRATIONS_OPENAI_API_KEY`
