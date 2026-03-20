@@ -5,6 +5,7 @@ import { FilterState } from "../lib/storage";
 import { cn } from "@/lib/utils";
 
 interface EvaluationSummaryProps {
+  backgroundInfo: string;
   description: string;
   benefitRatings: Record<string, number>;
   costRatings: Record<string, number>;
@@ -21,6 +22,7 @@ interface EvaluationSummaryProps {
 }
 
 export function EvaluationSummary({
+  backgroundInfo,
   description,
   benefitRatings,
   costRatings,
@@ -35,28 +37,35 @@ export function EvaluationSummary({
   saving,
   saved,
 }: EvaluationSummaryProps) {
-  
+
   const renderBar = (val: number, isBenefit: boolean) => (
     <div className="flex-1 h-1.5 bg-input rounded-full overflow-hidden">
-      <div 
-        className={cn("h-full rounded-full", isBenefit ? "bg-required" : "bg-prohibited")} 
-        style={{ width: `${(val / 10) * 100}%` }} 
+      <div
+        className={cn("h-full rounded-full", isBenefit ? "bg-required" : "bg-prohibited")}
+        style={{ width: `${(val / 10) * 100}%` }}
       />
     </div>
   );
 
   return (
     <div className="bg-card/60 backdrop-blur-sm rounded-2xl border border-border/60 shadow-lg p-6 flex flex-col gap-6">
-      
+
       <div>
         <h3 className="text-xs uppercase tracking-widest font-bold text-muted-foreground mb-3">Evaluation Summary</h3>
+
+        {backgroundInfo?.trim() && (
+          <div className="mb-4 p-3 rounded-xl bg-input/40 border border-border/60">
+            <p className="text-[11px] uppercase tracking-widest font-bold text-muted-foreground mb-1.5">Background</p>
+            <p className="text-sm text-foreground/80 leading-relaxed whitespace-pre-wrap">{backgroundInfo.trim()}</p>
+          </div>
+        )}
+
         <p className={cn("text-lg font-medium leading-snug", description ? "text-foreground" : "text-muted-foreground italic")}>
           {description ? `"${description}"` : "No proposed action described."}
         </p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
-        {/* Benefits Column */}
         <div className="space-y-3">
           <div className="flex items-baseline justify-between mb-1">
             <span className="text-xs uppercase tracking-wider font-bold text-required">Benefits</span>
@@ -71,7 +80,6 @@ export function EvaluationSummary({
           ))}
         </div>
 
-        {/* Costs Column */}
         <div className="space-y-3">
           <div className="flex items-baseline justify-between mb-1">
             <span className="text-xs uppercase tracking-wider font-bold text-prohibited">Costs</span>
@@ -125,8 +133,8 @@ export function EvaluationSummary({
           disabled={saving || saved}
           className={cn(
             "flex-1 py-3 px-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all duration-300",
-            saved 
-              ? "bg-required text-required-foreground shadow-[0_0_15px_rgba(76,175,80,0.4)]" 
+            saved
+              ? "bg-required text-required-foreground shadow-[0_0_15px_rgba(76,175,80,0.4)]"
               : "bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/20",
             (saving || saved) && "cursor-not-allowed opacity-90"
           )}
@@ -134,7 +142,7 @@ export function EvaluationSummary({
           {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : saved ? <Check className="w-4 h-4" /> : <Save className="w-4 h-4" />}
           {saving ? "Saving..." : saved ? "Saved Successfully" : "Save Evaluation"}
         </button>
-        
+
         <button
           onClick={onShare}
           className="flex-1 py-3 px-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 bg-input/50 text-primary border border-primary/30 hover:bg-primary/10 transition-all duration-300 focus:ring-2 focus:ring-primary/50 focus:outline-none"

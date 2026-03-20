@@ -50,8 +50,9 @@ function getQuadrant(benefit: number, cost: number) {
 }
 
 export function MatrixPage() {
+  const [backgroundInfo, setBackgroundInfo] = useState("");
   const [description, setDescription] = useState("");
-  
+
   const [benefitRatings, setBenefitRatings] = useState<Record<string, number>>({
     socialImpact: 5, stakeholderTrust: 5, workforceWellbeing: 5, productQuality: 5, longTermViability: 5
   });
@@ -81,6 +82,7 @@ export function MatrixPage() {
   };
 
   const handleLoadExample = () => {
+    setBackgroundInfo("Costco Wholesale Corporation operates ~870 warehouse clubs globally, with ~310,000 employees (US). The company has a track record of above-market wages and employee-first policies. This evaluation examines a proposed company-wide minimum wage increase to $25/hr. Context: current US federal minimum is $7.25/hr; Costco's current average is ~$23/hr. The decision involves balancing employee welfare and retention against margin pressure and investor expectations. Industry competitors (Walmart, Sam's Club) average $15-17/hr.");
     setDescription(EXAMPLE.description);
     setBenefitRatings({ ...EXAMPLE.benefit });
     setCostRatings({ ...EXAMPLE.cost });
@@ -98,6 +100,7 @@ export function MatrixPage() {
   };
 
   const handleReset = () => {
+    setBackgroundInfo("");
     setDescription("");
     setBenefitRatings({ socialImpact: 5, stakeholderTrust: 5, workforceWellbeing: 5, productQuality: 5, longTermViability: 5 });
     setCostRatings({ marginImpact: 5, laborTime: 5, operationalComplexity: 5, supplyChainRisk: 5, opportunityCost: 5 });
@@ -113,6 +116,7 @@ export function MatrixPage() {
     const evalData: Evaluation = {
       id: generateId(),
       createdAt: Date.now(),
+      backgroundInfo,
       description,
       benefitRatings,
       costRatings,
@@ -137,7 +141,7 @@ export function MatrixPage() {
 
   const handleShare = async () => {
     const text = buildShareText({
-      id: "tmp", createdAt: Date.now(), description, benefitRatings, costRatings,
+      id: "tmp", createdAt: Date.now(), backgroundInfo, description, benefitRatings, costRatings,
       benefitScore, costScore, quadrantLabel: quadrant.label, quadrantColor: quadrant.color,
       quadrantDescription: quadrant.description, filterUsed: showFilter,
       filterChecks: filterState.checks, filterNotes: filterState.notes, filterYesCount
@@ -198,7 +202,25 @@ export function MatrixPage() {
       {/* RIGHT PANEL - SCROLLING (Controls) */}
       <div className="flex-1 lg:h-screen lg:overflow-y-auto bg-background p-4 md:p-6 lg:p-8 pb-24">
         <div className="max-w-3xl mx-auto space-y-8">
-          
+
+          {/* Background Information */}
+          <section className="bg-card rounded-2xl border border-border p-5 shadow-sm">
+            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-4">
+              <div>
+                <h2 className="text-lg font-bold">Background Information</h2>
+                <p className="text-xs text-muted-foreground mt-1 leading-relaxed max-w-md">
+                  Paste any relevant context — company details, industry data, stakeholder concerns, prior decisions — that should inform this evaluation and appear in the report.
+                </p>
+              </div>
+            </div>
+            <textarea
+              value={backgroundInfo}
+              onChange={(e) => { setBackgroundInfo(e.target.value); markDirty(); }}
+              placeholder="Paste background context here: company overview, industry data, stakeholder concerns, prior decisions, constraints, goals…"
+              className="w-full bg-input/50 border border-border rounded-xl p-4 text-[15px] text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 min-h-[140px] resize-y transition-all"
+            />
+          </section>
+
           {/* Action Input Section */}
           <section className="bg-card rounded-2xl border border-border p-5 shadow-sm">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
@@ -281,6 +303,7 @@ export function MatrixPage() {
 
           {/* Summary / Actions */}
           <EvaluationSummary
+            backgroundInfo={backgroundInfo}
             description={description}
             benefitRatings={benefitRatings}
             costRatings={costRatings}

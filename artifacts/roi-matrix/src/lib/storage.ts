@@ -10,6 +10,7 @@ export interface FilterState {
 export interface Evaluation {
   id: string;
   createdAt: number;
+  backgroundInfo: string;
   description: string;
   benefitRatings: Record<string, number>;
   costRatings: Record<string, number>;
@@ -61,7 +62,10 @@ export function buildShareText(e: Evaluation): string {
   let text = `RETURN ON INTEGRITY: BENEFIT-COST MATRIX\n`;
   text += `${"─".repeat(44)}\n`;
   text += `Date: ${date}\n`;
-  text += `Action: ${e.description || "(untitled)"}\n\n`;
+  if (e.backgroundInfo?.trim()) {
+    text += `\nBACKGROUND INFORMATION\n${e.backgroundInfo.trim()}\n`;
+  }
+  text += `\nAction: ${e.description || "(untitled)"}\n\n`;
 
   text += `MATRIX RESULT: ${e.quadrantLabel}\n`;
   text += `${e.quadrantDescription}\n\n`;
