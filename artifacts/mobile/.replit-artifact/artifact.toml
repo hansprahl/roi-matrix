@@ -1,6 +1,6 @@
 kind = "mobile"
-previewPath = "/"
-title = "Return on Integrity Matrix"
+previewPath = "/mobile/"
+title = "Return on Integrity Matrix (Mobile)"
 version = "1.0.0"
 id = "artifacts/mobile"
 router = "expo-domain"
@@ -13,14 +13,14 @@ version = "1.0.0"
 ensurePreviewReachable = "/status"
 localPort = 18115
 name = "expo"
-paths = ["/"]
+paths = ["/mobile/"]
 
 [services.development]
 run = "pnpm --filter @workspace/mobile run dev"
 
 [services.env]
 PORT = "18115"
-BASE_PATH = "/"
+BASE_PATH = "/mobile/"
 
 [services.production]
 build = ["pnpm", "--filter", "@workspace/mobile", "run", "build"]

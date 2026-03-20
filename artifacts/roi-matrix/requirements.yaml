@@ -1,0 +1,10 @@
+packages:
+  "framer-motion": "For smooth matrix chart dot animations and UI transitions"
+  "date-fns": "For formatting evaluation history timestamps"
+  "clsx": "For conditional class names"
+  "tailwind-merge": "For merging tailwind classes safely"
+
+notes:
+  - This is a pure frontend application using localStorage for data persistence
+  - No backend API is required
+  - Uses Tailwind CSS v4 format

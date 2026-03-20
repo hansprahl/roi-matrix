@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "Return on Integrity Matrix"
+version = "1.0.0"
+id = "artifacts/roi-matrix"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 21531
+
+[services.development]
+run = "pnpm --filter @workspace/roi-matrix run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/roi-matrix", "run", "build" ]
+publicDir = "artifacts/roi-matrix/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "21531"
+BASE_PATH = "/"
