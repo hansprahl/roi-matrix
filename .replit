@@ -9,7 +9,7 @@ id = "artifacts/mockup-sandbox"
 [deployment]
 router = "application"
 deploymentTarget = "autoscale"
-build = ["bash", "-c", "cd /home/runner/workspace/artifacts/roi-matrix && BASE_PATH=/ pnpm exec vite build && cd /home/runner/workspace/artifacts/api-server && pnpm exec tsx ./build.ts"]
+build = ["bash", "-c", "set -e; pnpm install; cd artifacts/roi-matrix; BASE_PATH=/ ./node_modules/.bin/vite build; cd /home/runner/workspace/artifacts/api-server; ./node_modules/.bin/tsx ./build.ts"]
 run = ["node", "artifacts/api-server/dist/index.cjs"]
 
 [deployment.postBuild]
