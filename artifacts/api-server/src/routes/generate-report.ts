@@ -26,7 +26,6 @@ router.post("/generate-report", async (req, res) => {
     benefitScore,
     costScore,
     quadrantLabel,
-    quadrantDescription,
     filterUsed,
     filterChecks,
     filterNotes,
@@ -36,60 +35,63 @@ router.post("/generate-report", async (req, res) => {
     filterQuestions,
   } = req.body;
 
-  let prompt = `You are an expert business ethics analyst trained in the Daniels Principles framework. Write a professional narrative report for the following business decision evaluation.\n\n`;
+  let prompt = `You are a senior business ethics advisor writing an executive briefing for a board or leadership team. The quantitative assessment has already been presented to the reader. Do not restate the scores or ratings — synthesize, interpret, and advise.\n\n`;
+
+  prompt += `PROPOSED ACTION: ${description || "(Not specified)"}\n`;
+  prompt += `MATRIX RESULT: ${quadrantLabel} — Weighted Benefit Score ${benefitScore}/10 | Weighted Cost Score ${costScore}/10\n\n`;
 
   if (backgroundInfo?.trim()) {
-    prompt += `BACKGROUND INFORMATION\n${backgroundInfo.trim()}\n\n`;
+    prompt += `CONTEXT\n${backgroundInfo.trim()}\n\n`;
   }
 
   if (stakeholders?.trim()) {
-    prompt += `STAKEHOLDERS CONSULTED\n${stakeholders.trim()}\n\n`;
+    prompt += `STAKEHOLDERS CONSULTED: ${stakeholders.trim()}\n\n`;
   }
 
-  prompt += `PROPOSED ACTION\n${description || "(Not specified)"}\n\n`;
-
-  prompt += `MATRIX RESULT: ${quadrantLabel}\n${quadrantDescription}\n`;
-  prompt += `Benefit Score: ${benefitScore}/10 (weighted) | Cost Score: ${costScore}/10 (weighted)\n\n`;
-
-  prompt += `BENEFIT CRITERIA RATINGS\n`;
+  const highBenefits: string[] = [];
+  const lowBenefits: string[] = [];
   for (const c of (benefitCriteria ?? [])) {
     const label = customBenefitLabels?.[c.key] || c.label;
     const rating = benefitRatings?.[c.key] ?? 5;
     const weight = benefitWeights?.[c.key] ?? 2;
     const note = benefitNotes?.[c.key];
-    prompt += `- ${label} [${weightLabel(weight)} priority]: ${rating}/10`;
-    if (note?.trim()) prompt += `\n  Rationale: ${note.trim()}`;
-    prompt += "\n";
+    const entry = `${label} [${weightLabel(weight)} priority, ${rating}/10]${note?.trim() ? ` — ${note.trim()}` : ""}`;
+    if (rating >= 7) highBenefits.push(entry);
+    else lowBenefits.push(entry);
   }
 
-  prompt += `\nCOST CRITERIA RATINGS\n`;
+  const highCosts: string[] = [];
+  const lowCosts: string[] = [];
   for (const c of (costCriteria ?? [])) {
     const label = customCostLabels?.[c.key] || c.label;
     const rating = costRatings?.[c.key] ?? 5;
     const weight = costWeights?.[c.key] ?? 2;
     const note = costNotes?.[c.key];
-    prompt += `- ${label} [${weightLabel(weight)} priority]: ${rating}/10`;
-    if (note?.trim()) prompt += `\n  Rationale: ${note.trim()}`;
+    const entry = `${label} [${weightLabel(weight)} priority, ${rating}/10]${note?.trim() ? ` — ${note.trim()}` : ""}`;
+    if (rating >= 7) highCosts.push(entry);
+    else lowCosts.push(entry);
+  }
+
+  if (highBenefits.length) prompt += `STRONG BENEFIT SIGNALS\n${highBenefits.map(e => `• ${e}`).join("\n")}\n\n`;
+  if (lowBenefits.length) prompt += `WEAKER BENEFIT AREAS\n${lowBenefits.map(e => `• ${e}`).join("\n")}\n\n`;
+  if (highCosts.length) prompt += `SIGNIFICANT COST CONCERNS\n${highCosts.map(e => `• ${e}`).join("\n")}\n\n`;
+  if (lowCosts.length) prompt += `MANAGEABLE COST AREAS\n${lowCosts.map(e => `• ${e}`).join("\n")}\n\n`;
+
+  if (filterUsed) {
+    prompt += `CONDITIONAL ADOPTION FILTER RESULTS (${filterYesCount}/5 YES)\n`;
+    (filterQuestions ?? []).forEach((q: string, i: number) => {
+      prompt += `• [${filterChecks?.[i] ? "YES" : "NO"}] ${q}`;
+      if (filterNotes?.[i]?.trim()) prompt += ` — ${filterNotes[i].trim()}`;
+      prompt += "\n";
+    });
     prompt += "\n";
   }
 
-  if (filterUsed) {
-    prompt += `\nCONDITIONAL ADOPTION FILTER (${filterYesCount}/5 YES)\n`;
-    (filterQuestions ?? []).forEach((q: string, i: number) => {
-      prompt += `- [${filterChecks?.[i] ? "YES" : "NO"}] ${q}`;
-      if (filterNotes?.[i]?.trim()) prompt += `\n  Note: ${filterNotes[i].trim()}`;
-      prompt += "\n";
-    });
-  }
-
-  prompt += `\nWRITE A 400-600 WORD PROFESSIONAL NARRATIVE REPORT THAT:\n`;
-  prompt += `1. Opens with a clear executive summary sentence stating the recommendation\n`;
-  prompt += `2. Analyzes the key benefit drivers and what they mean for this decision\n`;
-  prompt += `3. Discusses cost concerns weighted by their priority level\n`;
-  prompt += `4. References the Daniels Principles (integrity, trust, respect, accountability, rule of law, viability, fairness) naturally\n`;
-  prompt += `5. If the conditional filter was used, incorporates those results and implications\n`;
-  prompt += `6. Closes with 2-3 specific, actionable next steps\n`;
-  prompt += `Write in flowing prose paragraphs only — no markdown headers, no bullet points, no bold text. Professional board-level tone.`;
+  prompt += `WRITE A CONCISE EXECUTIVE ANALYSIS IN EXACTLY THREE SHORT PARAGRAPHS (target 220–280 words total):\n\n`;
+  prompt += `Paragraph 1 — VERDICT: One clear declarative sentence stating your recommendation for this specific action. Then 2–3 sentences explaining the single most important reason — not a list, a focused argument. Reference the Daniels Principles (integrity, fairness, trust, promise-keeping, responsible citizenship) where they arise naturally.\n\n`;
+  prompt += `Paragraph 2 — ANALYSIS: Identify the most important tension or risk in this decision — where benefit strength meets cost pressure, or where integrity demands outweigh financial concerns. Draw on the rationale notes provided. Keep it sharp: one key insight, not a summary of all criteria.\n\n`;
+  prompt += `Paragraph 3 — NEXT STEPS: Two or three specific, concrete actions this organization should take within the next 30–90 days. Be directive. No hedging.\n\n`;
+  prompt += `RULES: Flowing prose only. No headers, no bullets, no markdown, no bold text. Do not mention score numbers. Write as if presenting to a board. Be direct and decisive — this is a briefing, not an academic analysis.`;
 
   res.setHeader("Content-Type", "text/event-stream");
   res.setHeader("Cache-Control", "no-cache");
