@@ -156,6 +156,17 @@ export function AiReport(props: AiReportProps) {
   return (
     <div className="space-y-4">
 
+      {/* Print-only report header */}
+      <div className="hidden print:block pb-5 mb-2 border-b-2 border-gray-300">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-[18pt] font-bold text-gray-900 leading-tight">Return on Integrity: Benefit-Cost Matrix</h1>
+            <p className="text-[9pt] text-gray-500 mt-1 tracking-wide uppercase">Principled Decision Analysis · Based on Daniels Principles</p>
+          </div>
+          <p className="text-[9pt] text-gray-400 shrink-0 pt-1">{new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}</p>
+        </div>
+      </div>
+
       {/* ── SECTION 1: Assessment Summary ── */}
       <div className={cn("bg-card rounded-2xl border p-5 sm:p-6 shadow-sm", qStyle.border)}>
         <div className="flex items-center gap-2 mb-5 pb-4 border-b border-border">

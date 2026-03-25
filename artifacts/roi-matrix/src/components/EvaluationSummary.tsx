@@ -24,6 +24,7 @@ interface EvaluationSummaryProps {
   filterYesCount: number;
   onSave: () => void;
   onShare: () => void;
+  shareCopied?: boolean;
   saving: boolean;
   saved: boolean;
 }
@@ -55,6 +56,7 @@ export function EvaluationSummary({
   filterYesCount,
   onSave,
   onShare,
+  shareCopied,
   saving,
   saved,
 }: EvaluationSummaryProps) {
@@ -195,10 +197,15 @@ export function EvaluationSummary({
 
         <button
           onClick={onShare}
-          className="flex-1 py-3 px-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 bg-input/50 text-primary border border-primary/30 hover:bg-primary/10 transition-all duration-300"
+          className={cn(
+            "flex-1 py-3 px-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 border transition-all duration-300",
+            shareCopied
+              ? "bg-required/15 text-required border-required/40 shadow-[0_0_12px_rgba(76,175,80,0.25)]"
+              : "bg-input/50 text-primary border-primary/30 hover:bg-primary/10"
+          )}
         >
-          <Share2 className="w-4 h-4" />
-          Share Report
+          {shareCopied ? <Check className="w-4 h-4" /> : <Share2 className="w-4 h-4" />}
+          {shareCopied ? "Copied to Clipboard" : "Copy Report Text"}
         </button>
 
         <button

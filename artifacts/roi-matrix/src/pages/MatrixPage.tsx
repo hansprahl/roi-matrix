@@ -208,16 +208,31 @@ export function MatrixPage() {
     timerRef.current = setTimeout(() => setSaved(false), 3000);
   };
 
+  const [shareCopied, setShareCopied] = useState(false);
+  const shareTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const handleShare = async () => {
     const text = buildShareText(buildEvalData());
     try {
-      if (navigator.share) {
-        await navigator.share({ title: "ROI Evaluation", text });
-      } else {
-        await navigator.clipboard.writeText(text);
-        alert("Report copied to clipboard!");
-      }
-    } catch {}
+      await navigator.clipboard.writeText(text);
+      setShareCopied(true);
+      if (shareTimerRef.current) clearTimeout(shareTimerRef.current);
+      shareTimerRef.current = setTimeout(() => setShareCopied(false), 2500);
+    } catch {
+      try {
+        const el = document.createElement("textarea");
+        el.value = text;
+        el.style.position = "fixed";
+        el.style.opacity = "0";
+        document.body.appendChild(el);
+        el.select();
+        document.execCommand("copy");
+        document.body.removeChild(el);
+        setShareCopied(true);
+        if (shareTimerRef.current) clearTimeout(shareTimerRef.current);
+        shareTimerRef.current = setTimeout(() => setShareCopied(false), 2500);
+      } catch {}
+    }
   };
 
   const clearComparison = () => {
@@ -287,7 +302,7 @@ export function MatrixPage() {
         <div className="max-w-3xl mx-auto space-y-8">
 
           {/* Background Information + Stakeholders */}
-          <section className="bg-card rounded-2xl border border-border p-5 shadow-sm space-y-4">
+          <section className="bg-card rounded-2xl border border-border p-5 shadow-sm space-y-4 print:hidden">
             <div>
               <h2 className="text-lg font-bold mb-1">Background Information</h2>
               <p className="text-xs text-muted-foreground leading-relaxed max-w-md mb-3">
@@ -314,7 +329,7 @@ export function MatrixPage() {
           </section>
 
           {/* Proposed Action */}
-          <section className="bg-card rounded-2xl border border-border p-5 shadow-sm">
+          <section className="bg-card rounded-2xl border border-border p-5 shadow-sm print:hidden">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
               <h2 className="text-lg font-bold">Proposed Action</h2>
               <div className="flex items-center gap-2">
@@ -335,7 +350,7 @@ export function MatrixPage() {
           </section>
 
           {/* Benefit Ratings */}
-          <section className="bg-card rounded-2xl border border-border p-5 sm:p-6 shadow-sm">
+          <section className="bg-card rounded-2xl border border-border p-5 sm:p-6 shadow-sm print:hidden">
             <div className="flex items-center gap-3 mb-4 pb-4 border-b border-border">
               <div className="w-3 h-3 rounded-full bg-required shadow-[0_0_8px_rgba(76,175,80,0.6)]" />
               <h2 className="text-xl font-bold flex-1">Benefit Ratings</h2>
@@ -381,7 +396,7 @@ export function MatrixPage() {
           </section>
 
           {/* Cost Ratings */}
-          <section className="bg-card rounded-2xl border border-border p-5 sm:p-6 shadow-sm">
+          <section className="bg-card rounded-2xl border border-border p-5 sm:p-6 shadow-sm print:hidden">
             <div className="flex items-center gap-3 mb-4 pb-4 border-b border-border">
               <div className="w-3 h-3 rounded-full bg-prohibited shadow-[0_0_8px_rgba(244,67,54,0.6)]" />
               <h2 className="text-xl font-bold flex-1">Cost Ratings</h2>
@@ -427,17 +442,19 @@ export function MatrixPage() {
           </section>
 
           {/* Conditional Filter */}
-          {showFilter && (
-            <ViabilityCheck
-              state={filterState}
-              onChange={(i, c, n) => {
-                const newChecks = [...filterState.checks]; newChecks[i] = c;
-                const newNotes = [...filterState.notes]; newNotes[i] = n;
-                setFilterState({ checks: newChecks, notes: newNotes });
-                markDirty();
-              }}
-            />
-          )}
+          <div className="print:hidden">
+            {showFilter && (
+              <ViabilityCheck
+                state={filterState}
+                onChange={(i, c, n) => {
+                  const newChecks = [...filterState.checks]; newChecks[i] = c;
+                  const newNotes = [...filterState.notes]; newNotes[i] = n;
+                  setFilterState({ checks: newChecks, notes: newNotes });
+                  markDirty();
+                }}
+              />
+            )}
+          </div>
 
           {/* AI Report */}
           <AiReport
@@ -463,29 +480,32 @@ export function MatrixPage() {
           />
 
           {/* Evaluation Summary */}
-          <EvaluationSummary
-            backgroundInfo={backgroundInfo}
-            stakeholders={stakeholders}
-            description={description}
-            benefitRatings={benefitRatings}
-            costRatings={costRatings}
-            benefitNotes={benefitNotes}
-            costNotes={costNotes}
-            benefitWeights={benefitWeights}
-            costWeights={costWeights}
-            customBenefitLabels={customBenefitLabels}
-            customCostLabels={customCostLabels}
-            benefitScore={benefitScore}
-            costScore={costScore}
-            quadrantLabel={quadrant.label}
-            filterUsed={showFilter}
-            filterState={filterState}
-            filterYesCount={filterYesCount}
-            onSave={handleSave}
-            onShare={handleShare}
-            saving={saving}
-            saved={saved}
-          />
+          <div className="print:hidden">
+            <EvaluationSummary
+              backgroundInfo={backgroundInfo}
+              stakeholders={stakeholders}
+              description={description}
+              benefitRatings={benefitRatings}
+              costRatings={costRatings}
+              benefitNotes={benefitNotes}
+              costNotes={costNotes}
+              benefitWeights={benefitWeights}
+              costWeights={costWeights}
+              customBenefitLabels={customBenefitLabels}
+              customCostLabels={customCostLabels}
+              benefitScore={benefitScore}
+              costScore={costScore}
+              quadrantLabel={quadrant.label}
+              filterUsed={showFilter}
+              filterState={filterState}
+              filterYesCount={filterYesCount}
+              onSave={handleSave}
+              onShare={handleShare}
+              shareCopied={shareCopied}
+              saving={saving}
+              saved={saved}
+            />
+          </div>
 
         </div>
       </div>
