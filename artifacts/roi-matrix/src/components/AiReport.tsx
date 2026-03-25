@@ -105,7 +105,7 @@ export function AiReport(props: AiReportProps) {
     setError("");
     try {
       const apiUrl = import.meta.env.PROD
-        ? "/api-server/api/generate-report"
+        ? "/api/generate-report"
         : "/proxy-api/api/generate-report";
       const response = await fetch(apiUrl, {
         method: "POST",
