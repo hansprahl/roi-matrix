@@ -190,6 +190,32 @@ The API server serves both the API and the ROI matrix static files in production
 
 ---
 
+## GitHub Repository
+
+The project is connected to GitHub at:
+**https://github.com/hansprahl/return-on-integrity-matrix**
+
+### Pushing updates to GitHub
+
+A convenience script is available at `scripts/push-to-github.sh`. It pushes the
+current `master` branch to the `main` branch on GitHub:
+
+```bash
+# Requires GITHUB_TOKEN env var (set in Replit Secrets)
+bash scripts/push-to-github.sh
+```
+
+The script:
+1. Configures the `github` remote (or updates it if already present)
+2. Pushes `master → main` using token-based HTTPS authentication
+
+To push manually without the script:
+```bash
+git push "https://hansprahl:$GITHUB_TOKEN@github.com/hansprahl/return-on-integrity-matrix.git" master:main
+```
+
+---
+
 ## Workspace Info
 - **Node**: 24
 - **Package manager**: pnpm
