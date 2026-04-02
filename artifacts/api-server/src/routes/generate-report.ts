@@ -1,12 +1,9 @@
 import { Router } from "express";
-import OpenAI from "openai";
+import Anthropic from "@anthropic-ai/sdk";
 
 const router = Router();
 
-const openai = new OpenAI({
-  baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
-  apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
-});
+const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 const weightLabel = (w: number) => (w === 1 ? "Low" : w === 3 ? "High" : "Medium");
 
@@ -99,17 +96,18 @@ router.post("/generate-report", async (req, res) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
 
   try {
-    const stream = await openai.chat.completions.create({
-      model: "gpt-5.2",
-      max_completion_tokens: 8192,
+    const stream = client.messages.stream({
+      model: "claude-sonnet-4-6",
+      max_tokens: 8096,
       messages: [{ role: "user", content: prompt }],
-      stream: true,
     });
 
-    for await (const chunk of stream) {
-      const content = chunk.choices[0]?.delta?.content;
-      if (content) {
-        res.write(`data: ${JSON.stringify({ content })}\n\n`);
+    for await (const event of stream) {
+      if (
+        event.type === "content_block_delta" &&
+        event.delta.type === "text_delta"
+      ) {
+        res.write(`data: ${JSON.stringify({ content: event.delta.text })}\n\n`);
       }
     }
 
