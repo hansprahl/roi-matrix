@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "gpwLLnzKiYjqBVZFnYDKx"
+uri = "file://replit.md"
+type = "text"
+title = "Project Reference — Return on Integrity Matrix"
